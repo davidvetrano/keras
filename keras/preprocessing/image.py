@@ -766,6 +766,14 @@ class DirectoryIterator(Iterator):
             raise ValueError('Invalid class_mode:', class_mode,
                              '; expected one of "categorical", '
                              '"binary", "sparse", "custom", or None.')
+
+        if class_mode == 'custom' and not callable(custom_output_fn):
+            raise ValueError('Custom class mode was specified but',
+                             '`custom_output_fn` is not callable')
+
+        if included_file_filter is not None and not callable(included_file_filter):
+            raise ValueError('An `included_file_filter` was specified but is not callable')
+
         self.class_mode = class_mode
         self.save_to_dir = save_to_dir
         self.save_prefix = save_prefix
@@ -801,7 +809,7 @@ class DirectoryIterator(Iterator):
                             break
                     if is_valid and included_file_filter is not None:
                         sample_idx += 1
-                        if not included_file_filter(subdir, fname, sample_idx):
+                        if not included_file_filter(subdir, os.path.join(subdir, fname), sample_idx):
                             is_valid = False
                     if is_valid:
                         self.nb_sample += 1
@@ -823,7 +831,7 @@ class DirectoryIterator(Iterator):
                             break
                     if is_valid and included_file_filter is not None:
                         sample_idx += 1
-                        if not included_file_filter(subdir, fname, sample_idx):
+                        if not included_file_filter(subdir, os.path.join(subdir, fname), sample_idx):
                             is_valid = False
                     if is_valid:
                         self.classes[i] = self.class_indices[subdir]
